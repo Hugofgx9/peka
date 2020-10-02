@@ -47,6 +47,7 @@ namespace UnityStandardAssets.Characters.ThirdPerson
         {
             // read inputs
             float h = CrossPlatformInputManager.GetAxis("Horizontal");
+            print(h);
             float v = CrossPlatformInputManager.GetAxis("Vertical");
             bool crouch = Input.GetKey(KeyCode.C);
 
@@ -54,9 +55,10 @@ namespace UnityStandardAssets.Characters.ThirdPerson
             if (m_Cam != null)
             {
                 // calculate camera relative direction to move:
+                //normalized set norme = 1
+                //scale(a,b) = a * b (multiply each param);
                 m_CamForward = Vector3.Scale(m_Cam.forward, new Vector3(1, 0, 1)).normalized;
-                m_Move = v*m_CamForward + h*m_Cam.right;
-            }
+                m_Move = v*m_CamForward + h*m_Cam.right;            }
             else
             {
                 // we use world-relative directions in the case of no main camera

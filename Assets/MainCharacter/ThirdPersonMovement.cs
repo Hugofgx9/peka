@@ -9,11 +9,11 @@ public class ThirdPersonMovement : MonoBehaviour
 	[SerializeField] private Transform cam;
 	[SerializeField] private float wspeed = 6f;
 	[SerializeField] private float rspeed = 18f;
-	private float speed = 6f;
 	[SerializeField] private float turnSmoothTime = 0.1f;
+	private float speed = 6f;
 	float turnSmoothVelocity;
 
-	//gravity and jump;
+	//gravity and jump
 	Vector3 velocity;
 	float gravity = -9.81f;
 	[SerializeField] private Transform groundCheck;
@@ -21,6 +21,15 @@ public class ThirdPersonMovement : MonoBehaviour
 	[SerializeField] private float groundDistance = 0.2f;
 	[SerializeField] private float jumpHeight = 10.0f;
 	bool isGrounded;
+
+	//animator
+	[SerializeField] private Animator m_Animator;
+	[SerializeField] private float m_RunCycleLegOffset = 0.2f;
+	[SerializeField] float m_AnimSpeedMultiplier = 1f;
+	private float m_TurnAmount;
+	private float m_ForwardAmount;
+	const float k_Half = 0.5f;
+
 
 	
 
@@ -32,7 +41,6 @@ public class ThirdPersonMovement : MonoBehaviour
 		Diplacement();
 		Run();
 		Jump();
-		print(isGrounded);
 
 		void Gravity(){
 			isGrounded = Physics.CheckSphere(groundCheck.position, groundDistance, groundMask);
@@ -58,7 +66,13 @@ public class ThirdPersonMovement : MonoBehaviour
 
 				controller.Move(moveDir.normalized * speed * Time.deltaTime);
 
+				//m_TurnAmount = Mathf.Atan2(direction.x, direction.z);
 			}
+			m_TurnAmount = direction.x;
+			m_ForwardAmount = Mathf.Abs(vertical * speed / rspeed);
+
+
+			UpdateAnimator(direction);
 		}
 
 		void Run(){
@@ -68,6 +82,7 @@ public class ThirdPersonMovement : MonoBehaviour
 			else {
 				speed = wspeed;
 			}
+
 		}
 
 		void Jump() {
@@ -77,5 +92,43 @@ public class ThirdPersonMovement : MonoBehaviour
 		}
 
 
+	}
+
+	void UpdateAnimator(Vector3 move)
+	{
+		// update the animator parameters
+		m_Animator.SetFloat("Forward", m_ForwardAmount, 0.1f, Time.deltaTime);
+		m_Animator.SetFloat("Turn", m_TurnAmount, turnSmoothTime, Time.deltaTime);
+		//m_Animator.SetFloat("Turn", 0f, 0.1f, Time.deltaTime);
+		m_Animator.SetBool("Crouch", false);
+		m_Animator.SetBool("OnGround", isGrounded);
+		if (!isGrounded)
+		{
+			m_Animator.SetFloat("Jump", velocity.y);
+		}
+
+		// calculate which leg is behind, so as to leave that leg trailing in the jump animation
+		// (This code is reliant on the specific run cycle offset in our animations,
+		// and assumes one leg passes the other at the normalized clip times of 0.0 and 0.5)
+		float runCycle =
+			Mathf.Repeat(
+				m_Animator.GetCurrentAnimatorStateInfo(0).normalizedTime + m_RunCycleLegOffset, 1);
+		float jumpLeg = (runCycle < k_Half ? 1 : -1) * m_ForwardAmount;
+		if (isGrounded)
+		{
+			m_Animator.SetFloat("JumpLeg", jumpLeg);
+		}
+
+		// the anim speed multiplier allows the overall speed of walking/running to be tweaked in the inspector,
+		// which affects the movement speed because of the root motion.
+		if (isGrounded && move.magnitude > 0)
+		{
+			m_Animator.speed = m_AnimSpeedMultiplier;
+		}
+		else
+		{
+			// don't use that while airborne
+			m_Animator.speed = 1;
+		}
 	}
 }

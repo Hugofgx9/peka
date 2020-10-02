@@ -4,5 +4,8 @@
 EditorBuildSettings:
   m_ObjectHideFlags: 0
   serializedVersion: 2
-  m_Scenes: []
+  m_Scenes:
+  - enabled: 1
+    path: Assets/Scenes/Hugo.unity
+    guid: 51fd3abf33e05457c8bc2a44bd47e9bf
   m_configObjects: {}
