@@ -39,12 +39,10 @@ public class ThirdPersonMovement : MonoBehaviour
 	// Update is called once per frame
 	void Update()
 	{
-
 		Gravity();
 		Diplacement();
 		Run();
 		Jump();
-
 	}
 
 	void Gravity(){
@@ -142,5 +140,9 @@ public class ThirdPersonMovement : MonoBehaviour
 			// don't use that while airborne
 			m_Animator.speed = 1;
 		}
+	}
+
+	public float getSpeed(){
+		return (currentSpeed / rspeed) ;
 	}
 }
