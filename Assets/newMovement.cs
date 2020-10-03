@@ -1,20 +1,16 @@
-using System.Collections;
+﻿using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
-public class ThirdPersonMovement : MonoBehaviour
+public class newMovement : MonoBehaviour
 {
 	//diplacement and camera
 	[SerializeField] private CharacterController controller;
 	[SerializeField] private Transform cam;
 	[SerializeField] private float wspeed = 6f;
 	[SerializeField] private float rspeed = 18f;
-	[SerializeField] private float turnSmoothTime = 1f;
-	[SerializeField] private float speedSmoothTime = 0.3f;
-
+	[SerializeField] private float turnSmoothTime = 0.1f;
 	private float speed = 6f;
-	private float currentSpeed = 0f;
-	float speedSmoothVelocity;
 	float turnSmoothVelocity;
 
 	//gravity and jump
@@ -34,7 +30,8 @@ public class ThirdPersonMovement : MonoBehaviour
 	private float m_ForwardAmount;
 	const float k_Half = 0.5f;
 
-		
+
+	
 
 	// Update is called once per frame
 	void Update()
@@ -45,65 +42,58 @@ public class ThirdPersonMovement : MonoBehaviour
 		Run();
 		Jump();
 
-	}
-
-	void Gravity(){
-		isGrounded = Physics.CheckSphere(groundCheck.position, groundDistance, groundMask);
-		if (isGrounded && velocity.y < 0) {
-			velocity.y = -0.4f;
-		}
-		velocity.y += gravity * Time.deltaTime;
-		controller.Move(velocity * Time.deltaTime);
-	}
-
-	void Diplacement(){
-		// read inputs
-		float h = Input.GetAxisRaw("Horizontal");
-		float v = Input.GetAxisRaw("Vertical");
-		Vector3 direction = new Vector3(h, 0f, v).normalized; 
-
-		Vector3 forward = cam.forward;
-		Vector3 right = cam.right;
-
-		forward.y = right.y = 0f;
-
-		forward.Normalize();
-		right.Normalize();
-
-		Vector3 desiredMoveDir = (forward * v + right * h).normalized;
-
-		if (desiredMoveDir != Vector3.zero) {
-			transform.rotation = Quaternion.Slerp(transform.rotation, Quaternion.LookRotation(desiredMoveDir), turnSmoothTime);
+		void Gravity(){
+			isGrounded = Physics.CheckSphere(groundCheck.position, groundDistance, groundMask);
+			if (isGrounded && velocity.y < 0) {
+				velocity.y = -0.4f;
+			}
+			velocity.y += gravity * Time.deltaTime;
+			controller.Move(velocity * Time.deltaTime);
 		}
 
-		float targetSpeed = speed * direction.magnitude;
-		currentSpeed = Mathf.SmoothDamp(currentSpeed, targetSpeed, ref speedSmoothVelocity, speedSmoothTime);
+		void Diplacement(){
+			float horizontal = Input.GetAxisRaw("Horizontal");
+			float vertical = Input.GetAxisRaw("Vertical");
+			float targetAngle = 0f;
+			float angle = 0f;
+			Vector3 direction = new Vector3(horizontal, 0f, vertical).normalized; 
 
-		controller.Move(desiredMoveDir * currentSpeed * Time.deltaTime);
+			if(direction.magnitude >= 0.1f)
+			{
+				targetAngle = cam.eulerAngles.y;
+				angle = Mathf.SmoothDampAngle(transform.eulerAngles.y, targetAngle, ref turnSmoothVelocity, turnSmoothTime);
+				transform.rotation = Quaternion.Euler(0f, angle, 0f);
+
+				direction = transform.TransformDirection(direction);
+
+				controller.Move(direction * speed * Time.deltaTime);
+
+				//m_TurnAmount = Mathf.Atan2(direction.x, direction.z);
+			}
+			m_TurnAmount = 0f;
+			m_ForwardAmount = direction.magnitude * speed / rspeed;
 
 
-		m_TurnAmount = 0f;
-		m_ForwardAmount = currentSpeed /rspeed;
-
-		// pass all parameters to the character control script
-
-		UpdateAnimator(desiredMoveDir);
-	}
-
-	void Run(){
-		if (Input.GetAxisRaw("Vertical") == 1.0f && Input.GetKey("left shift") && isGrounded) {
-			speed = rspeed;
+			UpdateAnimator(direction);
 		}
-		else {
-			speed = wspeed;
+
+		void Run(){
+			if (Input.GetAxisRaw("Vertical") == 1.0f && Input.GetKey("left shift") && isGrounded) {
+				speed = rspeed;
+			}
+			else {
+				speed = wspeed;
+			}
+
 		}
 
-	}
-
-	void Jump() {
-		if (isGrounded && Input.GetKey("space")) {
-			velocity.y = jumpHeight;
+		void Jump() {
+			if (isGrounded && Input.GetKey("space")) {
+				velocity.y = jumpHeight;
+			}
 		}
+
+
 	}
 
 	void UpdateAnimator(Vector3 move)
@@ -144,3 +134,4 @@ public class ThirdPersonMovement : MonoBehaviour
 		}
 	}
 }
+
