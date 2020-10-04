@@ -25,6 +25,7 @@ public class ThirdPersonMovement : MonoBehaviour
 	[SerializeField] private float groundDistance = 0.2f;
 	[SerializeField] private float jumpHeight = 10.0f;
 	bool isGrounded;
+	bool isJumping = false;
 
 	//animator
 	[SerializeField] private Animator m_Animator;
@@ -77,7 +78,7 @@ public class ThirdPersonMovement : MonoBehaviour
 		float targetSpeed = speed * direction.magnitude;
 		currentSpeed = Mathf.SmoothDamp(currentSpeed, targetSpeed, ref speedSmoothVelocity, speedSmoothTime);
 
-		controller.Move(desiredMoveDir * currentSpeed * Time.deltaTime);
+		controller.Move(desiredMoveDir * currentSpeed * Time.deltaTime / 3);
 
 
 		m_TurnAmount = 0f;
@@ -101,6 +102,10 @@ public class ThirdPersonMovement : MonoBehaviour
 	void Jump() {
 		if (isGrounded && Input.GetKey("space")) {
 			velocity.y = jumpHeight;
+			isJumping = true;
+		}
+		else {
+			isJumping = false;
 		}
 	}
 
@@ -144,5 +149,13 @@ public class ThirdPersonMovement : MonoBehaviour
 
 	public float getSpeed(){
 		return (currentSpeed / rspeed) ;
+	}
+
+	public bool getIsGrounded(){
+		return isGrounded;
+	}
+
+	public bool getIsJumping(){
+		return isJumping;
 	}
 }
